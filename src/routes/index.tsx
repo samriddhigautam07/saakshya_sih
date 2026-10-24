@@ -63,10 +63,10 @@ function Dashboard() {
             <tbody>
               {rows.slice(0, 6).map(({ a, f, status }) => (
                 <tr key={a.id} className="border-t">
-                  <td className="py-2"><Link to="/applications/$id" params={{ id: a.id }} className="font-medium text-primary hover:underline">{a.id}</Link></td>
+                  <td className="whitespace-nowrap py-2 pr-3"><Link to="/applications/$id" params={{ id: a.id }} className="font-medium text-primary hover:underline">{a.id}</Link></td>
                   <td>{a.institutionName || "—"}</td>
-                  <td>{fmtDate(a.submittedAt)}</td>
-                  <td>{f.length}</td>
+                  <td className="whitespace-nowrap pr-3">{fmtDate(a.submittedAt)}</td>
+                  <td className="pr-3 text-center">{f.length}</td>
                   <td><StatusBadge status={status} /></td>
                 </tr>
               ))}
