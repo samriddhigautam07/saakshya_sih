@@ -29,7 +29,7 @@ function VerificationPage() {
   if (!s) return <Loading />;
 
   const check = async (appId: string, docIds: string[]) => {
-    setBusy(docIds.length > 1 ? "all" : docIds[0]);
+    setBusy(docIds.length > 1 ? "all" : (docIds[0] ?? null));
     await new Promise((r) => setTimeout(r, 600));
     updateApplication(appId, (a) => ({ ...a, documents: a.documents.map((d) => (docIds.includes(d.id) ? { ...d, verification: simulateIssuerCheck(d, a) } : d)) }));
     logAudit(appId, `Mock issuer verification run on ${docIds.length} document(s)`);

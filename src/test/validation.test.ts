@@ -4,7 +4,7 @@ import { validateApplication } from "@/lib/validation/engine";
 import { simulateIssuerCheck } from "@/lib/verification/mock-issuer";
 
 const ctx = { records: INSTITUTION_RECORDS, allApplications: SEED_APPLICATIONS, config: DEFAULT_CONFIG, now: new Date("2026-10-24T00:00:00Z") };
-const run = (i: number) => validateApplication(SEED_APPLICATIONS[i], ctx);
+const run = (i: number) => validateApplication(SEED_APPLICATIONS[i]!, ctx);
 
 describe("validation rules on synthetic scenarios", () => {
   it("complete application has no findings", () => expect(run(0)).toEqual([]));
@@ -20,11 +20,11 @@ describe("validation rules on synthetic scenarios", () => {
   });
   it("flags duplicate file hash", () => expect(run(5).some((f) => f.ruleId === "R6")).toBe(true));
   it("flags missing mandatory field", () => {
-    const f = validateApplication({ ...SEED_APPLICATIONS[0], referenceNumber: "" }, ctx);
+    const f = validateApplication({ ...SEED_APPLICATIONS[0]!, referenceNumber: "" }, ctx);
     expect(f.map((x) => x.id)).toContain("R1:referenceNumber");
   });
   it("mock issuer marks expired and is labelled mock", () => {
-    const a = SEED_APPLICATIONS[2];
+    const a = SEED_APPLICATIONS[2]!;
     const r = simulateIssuerCheck(a.documents.find((d) => d.category === "fire_safety")!, a, ctx.now);
     expect(r).toMatchObject({ status: "Expired", mock: true });
   });
