@@ -17,6 +17,7 @@ export interface ValidationContext {
   now: Date;
 }
 
+type RawFinding = Omit<Finding, "ruleId" | "ruleName">;
 type Rule = {
   id: string;
   name: string;
@@ -62,7 +63,7 @@ export const RULES: Rule[] = [
     description: "Documents in the configurable checklist for the application category must be present with an uploaded file.",
     run: (app, { config }) => {
       if (!app.category) return [];
-      return config.checklist[app.category].flatMap((cat) => {
+      return config.checklist[app.category].flatMap((cat): RawFinding[] => {
         const d = app.documents.find((x) => x.category === cat);
         if (!d)
           return [{
@@ -93,7 +94,7 @@ export const RULES: Rule[] = [
     name: "Expired document",
     description: "Documents with a valid expiry date must not be expired (warns if expiring within the configured window).",
     run: (app, { config, now }) =>
-      app.documents.flatMap((d) => {
+      app.documents.flatMap((d): RawFinding[] => {
         if (!d.expiryDate) return [];
         const exp = new Date(d.expiryDate + "T23:59:59");
         if (isNaN(exp.getTime())) return [];

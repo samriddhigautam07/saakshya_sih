@@ -90,7 +90,7 @@ export function setFindingStatus(appId: string, findingId: string, to: FindingSt
       findingStatuses: { ...a.findingStatuses, [findingId]: to },
       audit: [
         ...a.audit,
-        { id: uid(), at: new Date().toISOString(), actor: "Reviewer (demo)", action: "Finding status changed", findingId, from, to, note: note || undefined },
+        { id: uid(), at: new Date().toISOString(), actor: "Reviewer (demo)", action: "Finding status changed", findingId, from, to, ...(note ? { note } : {}) },
       ],
     };
   });
