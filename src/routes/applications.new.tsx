@@ -32,8 +32,8 @@ function NewApplication() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const err: Record<string, string> = {};
-    if (f.faculty && (!/^\d+$/.test(f.faculty))) err.faculty = "Enter a whole number.";
-    if (f.referenceNumber && s.applications.some((a) => a.referenceNumber === f.referenceNumber)) err.referenceNumber = "This reference number already exists.";
+    if (f.faculty && (!/^\d+$/.test(f.faculty))) err["faculty"] = "Enter a whole number.";
+    if (f.referenceNumber && s.applications.some((a) => a.referenceNumber === f.referenceNumber)) err["referenceNumber"] = "This reference number already exists.";
     setErrors(err);
     if (Object.keys(err).length) return;
     try {

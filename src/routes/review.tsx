@@ -10,7 +10,7 @@ import { FINDING_STATUSES, type Finding, type FindingStatus } from "@/lib/domain
 import { Empty, Loading, PageHeader, Panel, StatusBadge, fmtDate, fmtDateTime } from "@/components/vw/ui";
 
 export const Route = createFileRoute("/review")({
-  validateSearch: (s: Record<string, unknown>): { app?: string } => ({ app: typeof s.app === "string" ? s.app : undefined }),
+  validateSearch: (s: Record<string, unknown>): { app?: string | undefined } => ({ app: typeof s["app"] === "string" ? s["app"] : undefined }),
   head: () => ({
     meta: [
       { title: "Results & Review — VerifyWise AI" },
@@ -77,8 +77,8 @@ function FindingCard({ appId, f, status }: { appId: string; f: Finding; status: 
   const [next, setNext] = useState<FindingStatus>(status);
   const [note, setNote] = useState("");
   const save = () => {
-    if (next === status && !note) return toast.info("No change to save.");
-    if ((next === "Resolved" || next === "Escalated") && !note.trim()) return toast.error(`Add a note explaining why the finding is ${next.toLowerCase()}.`);
+    if (next === status && !note) { toast.info("No change to save."); return; }
+    if ((next === "Resolved" || next === "Escalated") && !note.trim()) { toast.error(`Add a note explaining why the finding is ${next.toLowerCase()}.`); return; }
     try {
       setFindingStatus(appId, f.id, next, note.trim());
       setNote("");

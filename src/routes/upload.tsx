@@ -10,7 +10,7 @@ import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type AppDocument, type DocCategory
 import { Empty, Loading, PageHeader, Panel, StatusBadge, fmtDate } from "@/components/vw/ui";
 
 export const Route = createFileRoute("/upload")({
-  validateSearch: (s: Record<string, unknown>): { app?: string } => ({ app: typeof s.app === "string" ? s.app : undefined }),
+  validateSearch: (s: Record<string, unknown>): { app?: string | undefined } => ({ app: typeof s["app"] === "string" ? s["app"] : undefined }),
   head: () => ({
     meta: [
       { title: "Document Upload — VerifyWise AI" },
