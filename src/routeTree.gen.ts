@@ -10,6 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReviewRouteImport } from './routes/review'
+import { Route as UploadRouteImport } from './routes/upload'
+import { Route as ValidationRouteImport } from './routes/validation'
+import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as ApplicationsIndexRouteImport } from './routes/applications.index'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 import { Route as ApplicationsNewRouteImport } from './routes/applications.new'
@@ -17,6 +21,26 @@ import { Route as ApplicationsNewRouteImport } from './routes/applications.new'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ValidationRoute = ValidationRouteImport.update({
+  id: '/validation',
+  path: '/validation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplicationsIndexRoute = ApplicationsIndexRouteImport.update({
@@ -37,12 +61,20 @@ const ApplicationsNewRoute = ApplicationsNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
+  '/upload': typeof UploadRoute
+  '/validation': typeof ValidationRoute
+  '/verification': typeof VerificationRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/applications/new': typeof ApplicationsNewRoute
   '/applications/': typeof ApplicationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
+  '/upload': typeof UploadRoute
+  '/validation': typeof ValidationRoute
+  '/verification': typeof VerificationRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/applications/new': typeof ApplicationsNewRoute
   '/applications': typeof ApplicationsIndexRoute
@@ -50,18 +82,42 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
+  '/upload': typeof UploadRoute
+  '/validation': typeof ValidationRoute
+  '/verification': typeof VerificationRoute
   '/applications/$id': typeof ApplicationsIdRoute
   '/applications/new': typeof ApplicationsNewRoute
   '/applications/': typeof ApplicationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/applications/$id' | '/applications/new' | '/applications/'
+  fullPaths:
+    | '/'
+    | '/review'
+    | '/upload'
+    | '/validation'
+    | '/verification'
+    | '/applications/$id'
+    | '/applications/new'
+    | '/applications/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/applications/$id' | '/applications/new' | '/applications'
+  to:
+    | '/'
+    | '/review'
+    | '/upload'
+    | '/validation'
+    | '/verification'
+    | '/applications/$id'
+    | '/applications/new'
+    | '/applications'
   id:
     | '__root__'
     | '/'
+    | '/review'
+    | '/upload'
+    | '/validation'
+    | '/verification'
     | '/applications/$id'
     | '/applications/new'
     | '/applications/'
@@ -69,6 +125,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ReviewRoute: typeof ReviewRoute
+  UploadRoute: typeof UploadRoute
+  ValidationRoute: typeof ValidationRoute
+  VerificationRoute: typeof VerificationRoute
   ApplicationsIdRoute: typeof ApplicationsIdRoute
   ApplicationsNewRoute: typeof ApplicationsNewRoute
   ApplicationsIndexRoute: typeof ApplicationsIndexRoute
@@ -81,6 +141,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/validation': {
+      id: '/validation'
+      path: '/validation'
+      fullPath: '/validation'
+      preLoaderRoute: typeof ValidationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/applications/': {
@@ -109,6 +197,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ReviewRoute: ReviewRoute,
+  UploadRoute: UploadRoute,
+  ValidationRoute: ValidationRoute,
+  VerificationRoute: VerificationRoute,
   ApplicationsIdRoute: ApplicationsIdRoute,
   ApplicationsNewRoute: ApplicationsNewRoute,
   ApplicationsIndexRoute: ApplicationsIndexRoute,
