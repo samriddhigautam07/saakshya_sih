@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, FileStack, FilePlus2, Upload, ShieldCheck, BadgeCheck, ClipboardCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { clearSession, useSession } from "@/lib/session";
+import { canCreateApplication } from "@/lib/permissions";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -13,6 +16,8 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const user = useSession();
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-screen w-full bg-background">
       <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
@@ -26,7 +31,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 space-y-1 p-3">
-          {NAV.map((n) => (
+          <Link to="/login" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm opacity-80 transition hover:bg-sidebar-accent hover:opacity-100">{user ? user.email : "Backend sign in"}</Link>
+          {NAV.filter((n) => n.to !== "/applications/new" || canCreateApplication(user?.role)).map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -39,9 +45,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <p className="border-t border-sidebar-border p-4 text-[11px] leading-snug opacity-70">
-          Demonstration only. Synthetic data. Not an official AICTE system and not connected to any real portal or issuing authority.
-        </p>
+        <div className="border-t border-sidebar-border p-4">
+          {user && <><p className="mb-2 text-[11px] opacity-70">Signed in as {user.role}</p><Button size="sm" variant="outline" className="mb-3 w-full" onClick={() => { clearSession(); navigate({ to: "/login" }); }}>Sign out</Button></>}
+          <p className="text-[11px] leading-snug opacity-70">Backend-connected pages show authenticated API data. Remaining prototype tools may use synthetic local data. Not an official AICTE system and not connected to any real portal or issuing authority.</p>
+        </div>
       </aside>
       <main className="min-w-0 flex-1 px-8 py-6">{children}</main>
     </div>

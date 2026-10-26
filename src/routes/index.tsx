@@ -40,9 +40,12 @@ function Dashboard() {
         title="Dashboard"
         description="AICTE-style application validation overview. All institutions and records shown are synthetic demonstration data."
         actions={
-          <Button variant="outline" onClick={() => { if (confirm("Reset all demo data and review history?")) { resetDemo(); toast.success("Demo data reset"); } }}>
-            Reset demo data
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild><Link to="/applications/new">New Application</Link></Button>
+            <Button variant="outline" onClick={() => { if (confirm("Reset all demo data and review history?")) { resetDemo(); toast.success("Demo data reset"); } }}>
+              Reset demo data
+            </Button>
+          </div>
         }
       />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

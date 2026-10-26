@@ -89,3 +89,18 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Local FastAPI integration
+
+The login, Applications list/create/detail, private PDF upload/list, and per-application validation run/findings views use the FastAPI backend. Other prototype tools can still use the browser's synthetic demo store; the sidebar identifies those as prototype data. Backend pages do not fall back to local demo records when the API is unavailable. The integration does not verify issuers or connect to AICTE.
+
+Set the browser-visible backend origin in the root `.env` (copy `.env.example` to `.env`):
+
+```sh
+cp .env.example .env
+# edit VITE_API_BASE_URL if your backend uses a different origin
+```
+
+Create and activate the backend virtual environment, install `backend/requirements.txt`, configure `backend/.env`, and provision a user as described in [backend/README.md](backend/README.md). Start the backend from `backend/` with `uvicorn app.main:app --reload`, then start the frontend from the repository root with `npm run dev`. Backend access tokens stay in browser memory and are cleared on refresh/sign-out. Backend CORS allows the local Vite origins by default; set `CORS_ORIGINS` to a comma-separated list of exact trusted origins when using a different frontend origin.
+
+The application API uses the backend's snake_case schema: `institution_id`, `institution_name`, `category`, `reference_number`, `submitted_at`, and `declared_faculty_count`. Document upload sends multipart `category` and `file` fields. Backend ownership and role checks remain authoritative; the UI only hides actions the current role cannot use.

@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addApplication, uid, useStore } from "@/lib/store";
-import { APPLICATION_CATEGORIES, DOC_CATEGORIES, DOC_CATEGORY_LABELS, type ApplicationCategory, type DocCategory } from "@/lib/domain/types";
-import { Loading, PageHeader, Panel } from "@/components/vw/ui";
+import { APPLICATION_CATEGORIES, type ApplicationCategory } from "@/lib/domain/types";
+import { PageHeader, Panel } from "@/components/vw/ui";
+import { createApplication, type Application } from "@/lib/api";
+import { clearSession, useSession } from "@/lib/session";
+import { canCreateApplication } from "@/lib/permissions";
 
 export const Route = createFileRoute("/applications/new")({
   head: () => ({
@@ -21,39 +23,39 @@ export const Route = createFileRoute("/applications/new")({
 });
 
 function NewApplication() {
-  const s = useStore();
+  const user = useSession();
   const nav = useNavigate();
   const [f, setF] = useState({ institutionId: "", institutionName: "", category: "" as ApplicationCategory | "", referenceNumber: "", faculty: "" });
-  const [docs, setDocs] = useState<DocCategory[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  if (!s) return <Loading />;
-  const checklist = f.category ? s.config.checklist[f.category] : [];
+  const [busy, setBusy] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  useEffect(() => { if (!user) void nav({ to: "/login" }); }, [user, nav]);
+  if (!user) return null;
+  if (!canCreateApplication(user.role)) return <div className="mx-auto max-w-xl">
+    <PageHeader title="Application creation unavailable" description={`Your ${user.role} role does not have permission to create applications.`} />
+    <Panel title="Permission required">
+      <p className="text-sm text-muted-foreground">Application creation requires an Applicant / Institution account. Sign out and sign in with an Applicant / Institution account to continue. The backend enforces this permission for direct API requests as well.</p>
+      <Button className="mt-4" onClick={() => { clearSession(); void nav({ to: "/login" }); }}>Sign out and switch account</Button>
+    </Panel>
+  </div>;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const err: Record<string, string> = {};
     if (f.faculty && (!/^\d+$/.test(f.faculty))) err["faculty"] = "Enter a whole number.";
-    if (f.referenceNumber && s.applications.some((a) => a.referenceNumber === f.referenceNumber)) err["referenceNumber"] = "This reference number already exists.";
     setErrors(err);
     if (Object.keys(err).length) return;
+    setSubmitError(null);
+    setBusy(true);
     try {
-      const id = addApplication({
-        institutionId: f.institutionId.trim(),
-        institutionName: f.institutionName.trim(),
-        category: f.category,
-        referenceNumber: f.referenceNumber.trim(),
-        submittedAt: new Date().toISOString().slice(0, 10),
-        declaredFacultyCount: f.faculty ? Number(f.faculty) : null,
-        documents: docs.map((c) => ({
-          id: `DOC-${uid()}`, category: c, filename: null, sha256: null, sizeBytes: null, uploadedAt: null,
-          processingStatus: "Declared – file pending", fieldSource: "none", issuer: "", documentNumber: "",
-          issueDate: null, expiryDate: null, institutionIdOnDoc: "", verification: null,
-        })),
-      });
-      toast.success(`Application ${id} created. Missing fields will be flagged by validation.`);
-      nav({ to: "/applications/$id", params: { id } });
+      const created: Application = await createApplication({ institution_id: f.institutionId.trim(), institution_name: f.institutionName.trim(), category: f.category, reference_number: f.referenceNumber.trim(), submitted_at: new Date().toISOString().slice(0, 10), declared_faculty_count: f.faculty ? Number(f.faculty) : null });
+      toast.success(`Application ${created.id} created.`);
+      await nav({ to: "/applications/$id", params: { id: created.id } });
     } catch (x) {
-      toast.error((x as Error).message);
+      const message = (x as Error).message || "Application could not be created. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
+    } finally { setBusy(false);
     }
   };
 
@@ -67,7 +69,7 @@ function NewApplication() {
 
   return (
     <div>
-      <PageHeader title="New Application" description="Fields left blank are allowed so you can demonstrate the 'missing mandatory field' rule. Try institution IDs SYN-INST-1001 to SYN-INST-1006." />
+      <PageHeader title="New Application" description="Create an application record in the authenticated backend. Document files are uploaded separately." />
       <form onSubmit={submit} className="grid gap-6 lg:grid-cols-2">
         <Panel title="Application details">
           <div className="space-y-4">
@@ -85,20 +87,12 @@ function NewApplication() {
             {field("faculty", "Declared Faculty Count", "e.g. 62")}
           </div>
         </Panel>
-        <Panel title="Submitted documents">
-          <p className="mb-3 text-sm text-muted-foreground">Tick the documents the institution declares as submitted. Files are attached on the Document Upload page.</p>
-          <div className="space-y-2">
-            {DOC_CATEGORIES.map((c) => (
-              <label key={c} className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                <input type="checkbox" checked={docs.includes(c)} onChange={(e) => setDocs(e.target.checked ? [...docs, c] : docs.filter((d) => d !== c))} />
-                <span className="flex-1">{DOC_CATEGORY_LABELS[c]}</span>
-                {checklist.includes(c) && <span className="text-xs font-medium text-accent-foreground">Required</span>}
-              </label>
-            ))}
-          </div>
+        <Panel title="Next step">
+          <p className="text-sm text-muted-foreground">This request creates only the backend application. Upload PDFs from its detail page after creation; no local demo document records are added.</p>
+          {submitError && <p role="alert" className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">{submitError}</p>}
           <div className="mt-6 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => nav({ to: "/applications" })}>Cancel</Button>
-            <Button type="submit">Create application</Button>
+            <Button type="submit" disabled={busy}>{busy ? "Creating…" : "Create application"}</Button>
           </div>
         </Panel>
       </form>

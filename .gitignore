@@ -19,6 +19,20 @@ dist-ssr
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+.env
+.env.*
+!.env.example
+
+# Local backend configuration and SQLite data
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+backend/.venv/
+__pycache__/
+.pytest_cache/
 
 # Editor directories and files
 .vscode/*

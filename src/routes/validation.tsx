@@ -48,8 +48,8 @@ function ValidationPage() {
 
   return (
     <div>
-      <PageHeader title="Validation Engine" description="Six deterministic rules run against each application. No AI model is used — every finding is traceable to a rule."
-        actions={<Button onClick={runAll} disabled={running}>{running && <Loader2 className="h-4 w-4 animate-spin" />}Run validation on all applications</Button>} />
+      <PageHeader title="Validation Engine" description="Local synthetic demo only. These browser rules and checklist settings are separate from the authenticated backend; backend validation runs are available on each application detail page."
+        actions={<Button onClick={runAll} disabled={running}>{running && <Loader2 className="h-4 w-4 animate-spin" />}Run local demo on synthetic applications</Button>} />
       {lastRun && (
         <Panel title="Last run results" className="mb-6">
           <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
