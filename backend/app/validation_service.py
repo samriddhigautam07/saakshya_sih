@@ -55,6 +55,7 @@ def execute_validation(db: Session, application: ApplicationRecord, actor: str) 
                 id=document.id,
                 base_document_id=document.id,
                 category=document.category,
+                extracted_text=document.extracted_text,
                 structured_extractions=document.structured_extractions,
             ))
         else:
@@ -62,6 +63,7 @@ def execute_validation(db: Session, application: ApplicationRecord, actor: str) 
                 id=correction.id,
                 base_document_id=document.id,
                 category=document.category,
+                extracted_text=correction.extracted_text,
                 structured_extractions=correction.structured_extractions,
             ))
 

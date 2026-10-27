@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as VerificationRouteImport } from './routes/verification'
@@ -32,6 +33,11 @@ const LoginRoute = LoginRouteImport.update({
 const ReviewRoute = ReviewRouteImport.update({
   id: '/review',
   path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UploadRoute = UploadRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/review': typeof ReviewRoute
+  '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/validation': typeof ValidationRoute
   '/verification': typeof VerificationRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/review': typeof ReviewRoute
+  '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/validation': typeof ValidationRoute
   '/verification': typeof VerificationRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/review': typeof ReviewRoute
+  '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/validation': typeof ValidationRoute
   '/verification': typeof VerificationRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/review'
+    | '/signup'
     | '/upload'
     | '/validation'
     | '/verification'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/review'
+    | '/signup'
     | '/upload'
     | '/validation'
     | '/verification'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/review'
+    | '/signup'
     | '/upload'
     | '/validation'
     | '/verification'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ReviewRoute: typeof ReviewRoute
+  SignupRoute: typeof SignupRoute
   UploadRoute: typeof UploadRoute
   ValidationRoute: typeof ValidationRoute
   VerificationRoute: typeof VerificationRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/review'
       fullPath: '/review'
       preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/upload': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ReviewRoute: ReviewRoute,
+  SignupRoute: SignupRoute,
   UploadRoute: UploadRoute,
   ValidationRoute: ValidationRoute,
   VerificationRoute: VerificationRoute,

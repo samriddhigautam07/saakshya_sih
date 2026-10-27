@@ -6,6 +6,9 @@ from pathlib import Path
 from pydantic import AnyHttpUrl, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+BACKEND_ENV_FILE = BACKEND_DIR / ".env"
+
 
 class Settings(BaseSettings):
     app_env: str = "development"
@@ -30,7 +33,7 @@ class Settings(BaseSettings):
     max_llm_input_chars: int = Field(default=50_000, ge=1000, le=250_000)
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=BACKEND_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )

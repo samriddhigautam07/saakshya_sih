@@ -7,6 +7,7 @@ from app.main import create_app
 def test_health_returns_ok(tmp_path):
     database_path = tmp_path / "health.db"
     settings = Settings(
+        _env_file=None,
         database_url=f"sqlite:///{database_path}",
         jwt_secret_key="test-only-secret-key-with-more-than-32-characters",
         document_storage_dir=tmp_path / "private-documents",
@@ -23,6 +24,7 @@ def test_health_returns_ok(tmp_path):
 
 def test_configured_frontend_origin_can_send_bearer_preflight(tmp_path):
     app = create_app(Settings(
+        _env_file=None,
         database_url=f"sqlite:///{tmp_path / 'cors.db'}",
         jwt_secret_key="test-only-secret-key-with-more-than-32-characters",
         document_storage_dir=tmp_path / "cors-documents",
@@ -44,6 +46,7 @@ def test_configured_frontend_origin_can_send_bearer_preflight(tmp_path):
 
 def test_vite_port_8080_can_read_health_with_cors(tmp_path):
     app = create_app(Settings(
+        _env_file=None,
         database_url=f"sqlite:///{tmp_path / 'health-cors.db'}",
         jwt_secret_key="test-only-secret-key-with-more-than-32-characters",
         document_storage_dir=tmp_path / "health-cors-documents",
@@ -57,6 +60,7 @@ def test_vite_port_8080_can_read_health_with_cors(tmp_path):
 
 def test_unconfigured_frontend_origin_is_not_allowed(tmp_path):
     app = create_app(Settings(
+        _env_file=None,
         database_url=f"sqlite:///{tmp_path / 'cors-deny.db'}",
         jwt_secret_key="test-only-secret-key-with-more-than-32-characters",
         document_storage_dir=tmp_path / "cors-deny-documents",

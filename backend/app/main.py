@@ -2,6 +2,7 @@
 
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +19,8 @@ from app.routes.reports import router as reports_router
 from app.security import validate_auth_settings
 from app.structured_extraction import configured_provider
 
+logger = logging.getLogger("verifywise")
+
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the API app and initialize its configured database on startup."""
@@ -33,7 +36,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         _app.state.session_factory = session_factory
         _app.state.settings = app_settings
         _app.state.storage_root = resolve_private_storage_root(app_settings.document_storage_dir)
-        _app.state.llm_provider = configured_provider(app_settings)
+        provider = configured_provider(app_settings)
+        _app.state.llm_provider = provider
+        api_key_present = bool(
+            app_settings.llm_api_key
+            and app_settings.llm_api_key.get_secret_value().strip()
+        )
+        model_present = bool(app_settings.llm_model and app_settings.llm_model.strip())
+        logger.info(
+            "Structured extraction configuration: LLM_API_KEY_present=%s LLM_MODEL_present=%s provider_ready=%s",
+            api_key_present,
+            model_present,
+            provider is not None,
+        )
         yield
         engine.dispose()
 

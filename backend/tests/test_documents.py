@@ -119,6 +119,64 @@ def test_corrupt_pdf_is_retained_with_explicit_error_status(client, applicant_he
     assert extracted.json()["text"] == ""
 
 
+def test_reprocess_empty_scanned_pdf_uses_private_original_and_keeps_access_control(client, applicant_headers, user_factory, monkeypatch):
+    application_id = create_application(client, applicant_headers)
+    scanned = pymupdf.open()
+    page = scanned.new_page()
+    pixmap = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 24, 24), 0)
+    page.insert_image(page.rect, pixmap=pixmap)
+    payload = scanned.tobytes()
+    scanned.close()
+
+    def unavailable(*_args):
+        from app.pdf_extraction import OCRUnavailableError
+        raise OCRUnavailableError
+
+    monkeypatch.setattr("app.pdf_extraction.perform_ocr", unavailable)
+    uploaded = upload(client, application_id, applicant_headers, payload, category="land_document")
+    assert uploaded.status_code == 201
+    document_id = uploaded.json()["id"]
+    assert uploaded.json()["extraction_status"] == "ocr_unavailable"
+    assert uploaded.json()["extracted_text_char_count"] == 0
+
+    user_factory(email="different-owner@example.test")
+    other_headers = token_for(client, "different-owner@example.test")
+    path = f"/api/applications/{application_id}/documents/{document_id}/reprocess-text"
+    assert client.post(path).status_code == 401
+    assert client.post(path, headers=other_headers).status_code == 404
+
+    monkeypatch.setattr("app.pdf_extraction.perform_ocr", lambda *_args: "Recovered scanned page text")
+    retried = client.post(path, headers=applicant_headers)
+    assert retried.status_code == 200
+    assert retried.json()["extraction_status"] == "text_extracted_with_ocr"
+    assert retried.json()["extracted_text_char_count"] > 0
+    extracted = client.get(
+        f"/api/applications/{application_id}/documents/{document_id}/extracted-text",
+        headers=applicant_headers,
+    )
+    assert "Recovered scanned page text" in extracted.json()["text"]
+    assert "[Page 1 | OCR]" in extracted.json()["text"]
+    content = client.get(
+        f"/api/applications/{application_id}/documents/{document_id}/content",
+        headers=applicant_headers,
+    )
+    assert content.content == payload
+
+
+def test_reprocess_refuses_to_overwrite_existing_extracted_evidence(client, applicant_headers, pdf_bytes):
+    application_id = create_application(client, applicant_headers)
+    uploaded = upload(client, application_id, applicant_headers, pdf_bytes)
+    document_id = uploaded.json()["id"]
+
+    response = client.post(
+        f"/api/applications/{application_id}/documents/{document_id}/reprocess-text",
+        headers=applicant_headers,
+    )
+
+    assert response.status_code == 409
+    assert "already stored" in response.json()["detail"]
+
+
 def test_encrypted_and_scanned_pdfs_report_extraction_limits(client, applicant_headers, monkeypatch):
     application_id = create_application(client, applicant_headers)
     encrypted = pymupdf.open()

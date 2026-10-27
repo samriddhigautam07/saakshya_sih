@@ -8,6 +8,7 @@ import { Empty, Loading, PageHeader, Panel, StatusBadge, fmtDate } from "@/compo
 import { listApplications, listDocuments, uploadDocument, type Application, type Document } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@/lib/domain/types";
+import { DocumentIntegrityNotice } from "@/components/vw/DocumentIntegrityNotice";
 
 export const Route = createFileRoute("/upload")({
   validateSearch: (s: Record<string, unknown>): { app?: string | undefined } => ({ app: typeof s["app"] === "string" ? s["app"] as string : undefined }),
@@ -64,7 +65,7 @@ function UploadPage() {
         {canUpload && <Button onClick={upload} disabled={busy} className="w-full">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{busy ? "Uploading…" : "Upload PDF"}</Button>}
       </div></Panel>
       <Panel title={current ? `Backend documents — ${current.id}` : "Backend documents"} className="lg:col-span-2">
-        {!current ? <Empty title="Select an application to list its documents." /> : docs.length === 0 ? <Empty title="No backend documents yet." /> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-muted-foreground"><tr><th className="pb-2">Category</th><th>Filename</th><th>Uploaded</th><th>Status</th><th>Extraction</th></tr></thead><tbody>{docs.map((d) => <tr key={d.id} className="border-t"><td className="py-2">{DOC_CATEGORY_LABELS[d.category as DocCategory] ?? d.category}</td><td className="max-w-52 truncate">{d.filename ?? "—"}</td><td>{fmtDate(d.uploaded_at)}</td><td><StatusBadge status={d.processing_status} /></td><td>{d.extraction_status} · {d.extracted_text_char_count} chars</td></tr>)}</tbody></table></div>}
+        {!current ? <Empty title="Select an application to list its documents." /> : docs.length === 0 ? <Empty title="No backend documents yet." /> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-muted-foreground"><tr><th className="pb-2">Category</th><th>Filename</th><th>Uploaded</th><th>Status</th><th>Extraction</th></tr></thead><tbody>{docs.map((d) => <tr key={d.id} className="border-t"><td className="py-2">{DOC_CATEGORY_LABELS[d.category as DocCategory] ?? d.category}</td><td className="max-w-52 truncate">{d.filename ?? "—"}<DocumentIntegrityNotice duplicate={d.duplicate_hash_detected} /></td><td>{fmtDate(d.uploaded_at)}</td><td><StatusBadge status={d.processing_status} /></td><td>{d.extraction_status} · {d.extracted_text_char_count} chars</td></tr>)}</tbody></table></div>}
       </Panel>
     </div>
   </div>;

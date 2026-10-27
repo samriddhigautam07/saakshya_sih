@@ -97,12 +97,31 @@ def test_server_refuses_to_start_without_jwt_secret(tmp_path):
             pass
 
 
-def test_public_self_registration_is_not_available(client):
-    response = client.post(
-        "/api/auth/register",
-        json={"email": "self@example.test", "password": PASSWORD, "role": UserRole.RULES_MANAGER.value},
-    )
-    assert response.status_code == 404
+def test_public_registration_creates_only_applicant_with_hashed_password(client):
+    response = client.post("/api/auth/register", json={"email": " Self@Example.test ", "password": PASSWORD})
+
+    assert response.status_code == 201
+    assert response.json()["email"] == "self@example.test"
+    assert response.json()["role"] == UserRole.APPLICANT.value
+    with client.app.state.session_factory() as session:
+        user = session.query(User).filter_by(email="self@example.test").one()
+        assert user.password_hash != PASSWORD
+    assert login(client, "self@example.test", PASSWORD).status_code == 200
+
+
+@pytest.mark.parametrize("payload", [
+    {"email": "bad-email", "password": PASSWORD},
+    {"email": "short@example.test", "password": "short"},
+    {"email": "privileged@example.test", "password": PASSWORD, "role": UserRole.RULES_MANAGER.value},
+    {"email": "reviewer@example.test", "password": PASSWORD, "role": UserRole.OFFICIAL_REVIEWER.value},
+])
+def test_public_registration_rejects_invalid_or_privileged_requests(client, payload):
+    assert client.post("/api/auth/register", json=payload).status_code == 422
+
+
+def test_public_registration_rejects_duplicate_email(client):
+    assert client.post("/api/auth/register", json={"email": "same@example.test", "password": PASSWORD}).status_code == 201
+    assert client.post("/api/auth/register", json={"email": "SAME@example.test", "password": PASSWORD}).status_code == 409
 
 
 def test_role_guard_rejects_applicant_from_rules_manager_actions():

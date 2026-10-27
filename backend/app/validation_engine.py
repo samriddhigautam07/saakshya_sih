@@ -1,7 +1,7 @@
 """Deterministic evaluation of reviewed rule definitions and document consistency."""
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 import json
 import re
 from typing import Any
@@ -24,6 +24,20 @@ ALLOWED_FIELDS = {
     "issue_date", "expiry_date", "issuer", "faculty_count",
 }
 ALLOWED_SEVERITIES = {"High", "Medium", "Low"}
+TEXT_FIELD_LABELS = {
+    "institution_name": {"institution name", "name of institution", "name of the institution"},
+    "institution_id": {"institution id", "institute id", "aicte id"},
+    "document_type": {"document type", "certificate type"},
+    "document_reference_number": {
+        "document reference number", "reference number", "document ref no", "certificate number", "certificate no"
+    },
+    "issue_date": {"issue date", "date of issue", "issued on"},
+    "expiry_date": {"expiry date", "expiration date", "date of expiry", "valid until", "valid up to", "valid upto"},
+    "issuer": {"issuer", "issuing authority"},
+    "faculty_count": {"faculty count", "total faculty count", "number of faculty"},
+}
+PAGE_HEADER = re.compile(r"^\[Page\s+(\d+)\s*\|\s*(?:Digital|OCR)\]$", re.IGNORECASE)
+LABELLED_LINE = re.compile(r"^\s*([A-Za-z][A-Za-z0-9 /().&_-]{0,63})\s*[:：]\s*(\S(?:.*\S)?)\s*$")
 
 
 @dataclass
@@ -54,21 +68,86 @@ def _field_values(document: Any) -> dict[str, dict[str, Any]]:
         if candidate.status in {"complete", "partial", "uncertain"} and candidate.result_json:
             record = candidate.result_json
             break
+    values = _labelled_text_values(document)
     if not record:
-        return {}
-    values: dict[str, dict[str, Any]] = {}
+        return values
+    structured_values: dict[str, dict[str, Any]] = {}
     for field_name in ALLOWED_FIELDS:
         item = record.get(field_name)
         if not isinstance(item, dict) or item.get("value") is None:
             continue
-        values[field_name] = {
+        structured_values[field_name] = {
             "value": item.get("value"),
             "evidence": item.get("evidence"),
             "page_number": item.get("page_number"),
             "document_id": document.id,
             "base_document_id": getattr(document, "base_document_id", document.id),
+            "extraction_source": "structured_provider",
+        }
+    # Keep provider-extracted values when available. Exact labelled PDF lines fill gaps
+    # without inferring facts or making any external model request.
+    values.update({field: value for field, value in structured_values.items() if field not in values})
+    return values
+
+
+def _labelled_text_values(document: Any) -> dict[str, dict[str, Any]]:
+    """Read only explicitly labelled lines from stored page-referenced PDF text."""
+    text = getattr(document, "extracted_text", None) or ""
+    if not isinstance(text, str) or not text.strip():
+        return {}
+
+    label_fields = {
+        re.sub(r"[^a-z0-9]+", " ", alias.casefold()).strip(): field
+        for field, aliases in TEXT_FIELD_LABELS.items()
+        for alias in aliases
+    }
+    values: dict[str, dict[str, Any]] = {}
+    page_number: int | None = None
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        page_header = PAGE_HEADER.fullmatch(line)
+        if page_header:
+            page_number = int(page_header.group(1))
+            continue
+        labelled = LABELLED_LINE.fullmatch(raw_line)
+        if not labelled:
+            continue
+        label = re.sub(r"[^a-z0-9]+", " ", labelled.group(1).casefold()).strip()
+        field_name = label_fields.get(label)
+        if field_name is None or field_name in values:
+            continue
+        raw_value = labelled.group(2).strip()
+        if field_name == "faculty_count":
+            if not re.fullmatch(r"(?:\d{1,3}(?:,\d{3})+|\d+)", raw_value):
+                continue
+            value: Any = int(raw_value.replace(",", ""))
+        elif field_name in {"issue_date", "expiry_date"}:
+            value = _normalized_explicit_date(raw_value) or raw_value
+        else:
+            value = raw_value
+        values[field_name] = {
+            "value": value,
+            "evidence": line,
+            "page_number": page_number,
+            "document_id": document.id,
+            "base_document_id": getattr(document, "base_document_id", document.id),
+            "extraction_source": "deterministic_label_parse",
         }
     return values
+
+
+def _normalized_explicit_date(value: str) -> str | None:
+    """Normalize only unambiguous, fully labelled ISO or month-name dates."""
+    try:
+        return date.fromisoformat(value).isoformat()
+    except ValueError:
+        pass
+    for pattern in ("%d %B %Y", "%d %b %Y", "%B %d, %Y", "%b %d, %Y"):
+        try:
+            return datetime.strptime(value, pattern).date().isoformat()
+        except ValueError:
+            continue
+    return None
 
 
 def _severity(parameters: dict) -> str:

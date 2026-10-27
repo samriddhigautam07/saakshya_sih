@@ -458,6 +458,65 @@ def get_extracted_text(
     )
 
 
+@router.post("/{document_id}/reprocess-text", response_model=DocumentMetadataRead)
+def reprocess_document_text(
+    application_id: str,
+    document_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> DocumentMetadata:
+    """Retry bounded digital text extraction/OCR for an existing private PDF with no saved text."""
+    application = _authorized_application(application_id, user, db)
+    document = db.scalar(
+        select(DocumentMetadata).where(
+            DocumentMetadata.id == document_id,
+            DocumentMetadata.application_id == application.id,
+        )
+    )
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    if (document.extracted_text or "").strip():
+        raise HTTPException(
+            status_code=409,
+            detail="Text is already stored for this document. Reprocessing is limited to documents with empty text to preserve existing evidence.",
+        )
+    if not document.storage_key:
+        raise HTTPException(status_code=409, detail="The original private PDF is unavailable for text reprocessing.")
+    try:
+        path = resolve_storage_key(request.app.state.storage_root, document.storage_key)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail="The original private PDF is unavailable for text reprocessing.") from error
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="The original private PDF is unavailable for text reprocessing.")
+
+    settings = request.app.state.settings
+    extraction = extract_pdf_text(
+        path,
+        settings.max_extracted_text_chars,
+        max_pages=settings.pdf_max_pages,
+        ocr_max_pages=settings.ocr_max_pages,
+        ocr_dpi=settings.ocr_dpi,
+        ocr_min_digital_chars=settings.ocr_min_digital_chars,
+        ocr_max_page_pixels=settings.ocr_max_page_pixels,
+        ocr_page_timeout_seconds=settings.ocr_page_timeout_seconds,
+        processing_timeout_seconds=settings.pdf_processing_timeout_seconds,
+    )
+    document.extracted_text = extraction.text
+    document.extraction_status = extraction.status
+    document.extracted_at = extraction.extracted_at
+    if extraction.status in {"corrupt", "failed"}:
+        document.processing_status = "Upload error"
+    db.add(AuditLog(
+        actor=user.email,
+        application_id=application.id,
+        action=f"Retried PDF text/OCR extraction: {extraction.status} ({len(extraction.text)} characters)",
+    ))
+    db.commit()
+    db.refresh(document)
+    return document
+
+
 @router.post("/{document_id}/structured-extraction", response_model=DocumentExtractionRead, status_code=201)
 async def extract_structured_fields(
     application_id: str,

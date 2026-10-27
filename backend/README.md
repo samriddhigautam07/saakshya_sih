@@ -2,7 +2,7 @@
 
 This local FastAPI service uses SQLAlchemy and SQLite to persist application data, document metadata, and structured extraction results. It provides password-based login, short-lived JWT bearer access tokens, backend-enforced role checks, authenticated document upload, private file storage, digital PDF extraction, bounded Tesseract OCR, and optional evidence-checked LLM extraction. Passwords are hashed using Argon2 through `pwdlib`; JWTs are signed with a locally configured secret using PyJWT.
 
-The Lovable frontend's login, application list/create/detail, document upload/list, and per-application validation views call this backend. Remaining prototype tools may still show labeled synthetic browser data. There is no public registration endpoint. Regulatory rules are not included.
+The Lovable frontend's login, institution registration, application list/create/detail, document upload/list, and per-application validation views call this backend. Public registration creates Applicant / Institution accounts only; privileged roles remain controlled through trusted provisioning. Remaining prototype tools may still show labeled synthetic browser data. Regulatory rules are not included.
 
 ## Roles and access
 
@@ -41,11 +41,11 @@ The SQLite database defaults to `backend/verifywise.db`. Private document files 
 
 `MAX_DOCUMENT_SIZE_BYTES` defaults to 10 MiB. `MAX_EXTRACTED_TEXT_CHARS` defaults to 2,000,000 characters to bound stored extraction output. OCR is limited by `PDF_MAX_PAGES`, `OCR_MAX_PAGES`, `OCR_DPI`, `OCR_MAX_PAGE_PIXELS`, `OCR_PAGE_TIMEOUT_SECONDS`, and `PDF_PROCESSING_TIMEOUT_SECONDS`. Digital and OCR text is labeled with source and page number; the original PDF remains unchanged. If Tesseract is not installed, the upload is retained and reports `ocr_unavailable`.
 
-Structured extraction is optional. Set backend-only `LLM_API_KEY` and `LLM_MODEL`; `LLM_BASE_URL` defaults to the OpenAI API and can point at a compatible service. `LLM_TIMEOUT_SECONDS` and `MAX_LLM_INPUT_CHARS` bound provider use. With either required value missing, the service starts normally and extraction requests are recorded as `provider_unavailable`. The provider receives document text as untrusted data. Returned values must validate against the schema and each populated value must have an exact evidence quote present in the extracted text; fabricated or inconsistent evidence is rejected. No provider key is returned by the API.
+Structured extraction is optional. For Google Gemini, configure backend-only `LLM_API_KEY` with your Gemini API key, `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`, and `LLM_MODEL=gemini-3.8-flash`. The existing OpenAI-compatible adapter sends chat-completions JSON requests to that endpoint; no extra SDK or schema changes are needed. Keep the key only in `backend/.env`. `LLM_TIMEOUT_SECONDS` and `MAX_LLM_INPUT_CHARS` bound provider use. With either required value missing, the service starts normally and extraction requests are recorded as `provider_unavailable`. The provider receives document text as untrusted data. Returned values must validate against the schema and each populated value must have an exact evidence quote present in the extracted text; fabricated or inconsistent evidence is rejected. No provider key is returned by the API. If Gemini is unavailable or rejects a response, extraction records an explicit provider error; PDF text extraction and OCR remain independent of the LLM.
 
 ## Create the initial administrator securely
 
-There is no self-registration API. After configuring `.env`, run the provisioning command from `backend/` as a trusted local operator. It prompts for the password twice without placing it in shell history and stores only an Argon2 password hash.
+Institutions can register through `POST /api/auth/register` with an email and password of at least 12 characters. The endpoint always assigns the Applicant / Institution role, rejects extra role fields, and stores an Argon2 password hash. It does not issue a token; the user signs in through `POST /api/auth/login`. This endpoint cannot provision reviewers or administrators. After configuring `.env`, create privileged accounts by running the provisioning command from `backend/` as a trusted local operator. It prompts for the password twice without placing it in shell history and stores only an Argon2 password hash.
 
 ```sh
 python -m app.cli create-user \
@@ -164,6 +164,10 @@ Stream the original PDF as an authenticated attachment with `private, no-store` 
 ### `GET /api/applications/{application_id}/documents/{document_id}/extracted-text`
 
 Return extracted digital/OCR text and its explicit processing status to an authorized applicant or Official Reviewer. Text labels each page as `Digital` or `OCR`. Encrypted, empty, corrupt, unavailable OCR, over-limit, and page failure cases include a status describing the limitation. Corrupt PDFs with a valid PDF header are retained privately with `Upload error`; invalid extensions, MIME types, signatures, empty byte streams, and oversized uploads are rejected.
+
+### `POST /api/applications/{application_id}/documents/{document_id}/reprocess-text`
+
+Retry the same bounded digital text/OCR extraction against the privately stored original PDF. This is intended for uploads that were retained with empty extracted text, such as scanned PDFs after Tesseract has been installed. Only the owning applicant or an Official Reviewer may call it. To preserve evidence provenance, the endpoint refuses documents that already have nonempty extracted text; it does not replace the uploaded PDF or run the LLM.
 
 ### `POST /api/applications/{application_id}/documents/{document_id}/structured-extraction`
 

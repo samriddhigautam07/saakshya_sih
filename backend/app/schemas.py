@@ -83,6 +83,21 @@ class LoginRequest(BaseModel):
         return self
 
 
+class InstitutionRegistrationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=12, max_length=128)
+
+    @model_validator(mode="after")
+    def validate_email_shape(self) -> "InstitutionRegistrationRequest":
+        normalized = self.email.strip().lower()
+        if "@" not in normalized or normalized.startswith("@") or normalized.endswith("@"):
+            raise ValueError("Enter a valid email address.")
+        object.__setattr__(self, "email", normalized)
+        return self
+
+
 class UserRead(ApiSchema):
     id: str
     email: str

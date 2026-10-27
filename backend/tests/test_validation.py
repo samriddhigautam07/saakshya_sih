@@ -99,7 +99,7 @@ def add_source_and_rule(
         return rule.id
 
 
-def add_document(client, application_id, category="faculty_list", fields=None):
+def add_document(client, application_id, category="faculty_list", fields=None, extracted_text="synthetic page-labeled extracted text"):
     with client.app.state.session_factory() as db:
         document = DocumentMetadata(
             application_id=application_id,
@@ -110,7 +110,7 @@ def add_document(client, application_id, category="faculty_list", fields=None):
             issuer="",
             document_number="",
             institution_id_on_doc="",
-            extracted_text="synthetic page-labeled extracted text",
+            extracted_text=extracted_text,
             extraction_status="text_extracted",
         )
         db.add(document)
@@ -191,6 +191,73 @@ def test_missing_documents_and_fields_are_explicit_and_category_rules_are_scoped
     assert results["MISSING-DOC"]["result_status"] == "mismatch"
     assert results["MISSING-FIELD"]["result_status"] == "unable_to_verify"
     assert "WRONG-CATEGORY" not in results
+
+
+def test_labelled_pdf_text_supports_field_and_expiry_rules_without_structured_provider(client, applicant_headers):
+    application_id = create_application(client, applicant_headers)
+    document_id = add_document(
+        client,
+        application_id,
+        "fire_safety",
+        extracted_text=(
+            "[Page 1 | Digital]\nInstitution Name: Alpha Institute\nInstitution ID: INST-ALPHA\n\n"
+            "[Page 2 | OCR]\nExpiry Date: 2000-01-01"
+        ),
+    )
+    add_source_and_rule(client, "Extension of Approval", "presence", {
+        "document_category": "fire_safety", "field": "institution_id"
+    }, rule_id="TEXT-FIELD-PRESENCE")
+    add_source_and_rule(client, "Extension of Approval", "date", {
+        "document_category": "fire_safety", "field": "expiry_date", "comparison": "not_expired"
+    }, rule_id="TEXT-EXPIRY")
+
+    response = run_validation(client, application_id, applicant_headers)
+
+    assert response.status_code == 201
+    results = {item["rule_id"]: item for item in response.json()["results"]}
+    assert results["TEXT-FIELD-PRESENCE"]["result_status"] == "pass"
+    field_evidence = results["TEXT-FIELD-PRESENCE"]["evidence_json"][0]
+    assert field_evidence["value"] == "INST-ALPHA"
+    assert field_evidence["evidence"] == "Institution ID: INST-ALPHA"
+    assert field_evidence["page_number"] == 1
+    assert field_evidence["extraction_source"] == "deterministic_label_parse"
+    assert results["TEXT-EXPIRY"]["result_status"] == "mismatch"
+    assert results["TEXT-EXPIRY"]["evidence_json"][0]["document_id"] == document_id
+    assert results["TEXT-EXPIRY"]["evidence_json"][0]["page_number"] == 2
+
+
+def test_unlabelled_pdf_text_does_not_invent_a_field_value(client, applicant_headers):
+    application_id = create_application(client, applicant_headers)
+    add_document(client, application_id, "fire_safety", extracted_text=(
+        "[Page 1 | Digital]\nThe identifier is INST-UNLABELLED.\nThis document expires in 2035."
+    ))
+    add_source_and_rule(client, "Extension of Approval", "presence", {
+        "document_category": "fire_safety", "field": "institution_id"
+    }, rule_id="UNLABELLED-FIELD")
+
+    response = run_validation(client, application_id, applicant_headers)
+
+    result = next(item for item in response.json()["results"] if item["rule_id"] == "UNLABELLED-FIELD")
+    assert result["result_status"] == "unable_to_verify"
+    assert result["evidence_json"] == []
+
+
+def test_cross_document_mismatch_uses_labelled_pdf_text_and_preserves_page_evidence(client, applicant_headers):
+    application_id = create_application(client, applicant_headers)
+    first_id = add_document(client, application_id, "faculty_list", extracted_text=(
+        "[Page 2 | Digital]\nInstitution Name: Alpha Institute"
+    ))
+    second_id = add_document(client, application_id, "fire_safety", extracted_text=(
+        "[Page 4 | OCR]\nInstitution Name: Beta Institute"
+    ))
+
+    response = run_validation(client, application_id, applicant_headers)
+
+    result = next(item for item in response.json()["results"] if item["rule_id"] == "cross_document.institution_name")
+    assert result["result_status"] == "manual_review"
+    assert set(result["document_ids_json"]) == {first_id, second_id}
+    assert {entry["page_number"] for entry in result["evidence_json"]} == {2, 4}
+    assert all(entry["extraction_source"] == "deterministic_label_parse" for entry in result["evidence_json"])
 
 
 def test_cross_document_conflicts_are_evidence_linked_and_missing_values_are_not_conflicts(client, applicant_headers):

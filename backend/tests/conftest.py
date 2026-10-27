@@ -15,6 +15,7 @@ def client(tmp_path):
     database_path = tmp_path / "applications-test.db"
     app = create_app(
         Settings(
+            _env_file=None,
             database_url=f"sqlite:///{database_path}",
             jwt_secret_key=TEST_JWT_SECRET,
             document_storage_dir=tmp_path / "private-documents",
