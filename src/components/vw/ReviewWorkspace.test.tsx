@@ -32,6 +32,17 @@ describe("backend review workspace", () => {
     expect(screen.getByText(/reviewer@example\.test/)).toBeInTheDocument();
   });
 
+  it("clearly distinguishes pending or mock issuer results from real verification", () => {
+    const withStatuses = { ...report, verification_status: [
+      { document_id: "D-1", status: "Verification Pending", checked_at: "2026-01-01T00:00:00Z", message: "No issuer response yet.", provider: "mock", is_mock: true },
+      { document_id: "D-2", status: "Source Unavailable", checked_at: "2026-01-01T00:00:00Z", message: "Provider unavailable.", provider: "mock", is_mock: true },
+    ], mock_verification_present: true };
+    render(<ReviewWorkspace {...base({ report: withStatuses })} />);
+    expect(screen.getByText("Verification Pending")).toBeInTheDocument();
+    expect(screen.getByText("Source Unavailable")).toBeInTheDocument();
+    expect(screen.getAllByText(/synthetic\/mock response/)).toHaveLength(2);
+  });
+
   it("hides official decision controls for applicants and lets reviewers submit a reasoned decision", () => {
     const onDecision = vi.fn().mockResolvedValue(undefined);
     const { rerender } = render(<ReviewWorkspace {...base({ user: user("Applicant / Institution"), onDecision })} />);

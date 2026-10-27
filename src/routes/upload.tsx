@@ -26,32 +26,50 @@ async function fileError(file: File): Promise<string | null> {
   return null;
 }
 
-function UploadPage() {
+export function UploadPage() {
   const user = useSession(); const { app } = Route.useSearch(); const navigate = useNavigate({ from: "/upload" });
   const [applications, setApplications] = useState<Application[] | null>(null);
   const [docs, setDocs] = useState<Document[]>([]); const [category, setCategory] = useState<DocCategory>("fire_safety");
   const [file, setFile] = useState<File | null>(null); const [busy, setBusy] = useState(false);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const current = applications?.find((item) => item.id === app);
   const canUpload = user?.role === "Applicant / Institution" || user?.role === "Official Reviewer";
   useEffect(() => {
     if (!user) { void navigate({ to: "/login" }); return; }
     if (user.role === "Rules Manager / Administrator") { setError("This role cannot access application documents."); setApplications([]); return; }
-    listApplications().then(setApplications).catch((e) => setError((e as Error).message));
+    setError(null);
+    listApplications().then(setApplications).catch((e) => { setApplications([]); setError((e as Error).message || "Applications could not be loaded."); });
   }, [user, navigate]);
-  useEffect(() => { if (app) listDocuments(app).then(setDocs).catch((e) => setError((e as Error).message)); else setDocs([]); }, [app]);
+  useEffect(() => {
+    if (!app) { setDocs([]); setLoadingDocuments(false); return; }
+    let cancelled = false;
+    setLoadingDocuments(true);
+    listDocuments(app).then((items) => { if (!cancelled) { setDocs(items); setError(null); } }).catch((e) => { if (!cancelled) setError((e as Error).message || "Documents could not be loaded."); }).finally(() => { if (!cancelled) setLoadingDocuments(false); });
+    return () => { cancelled = true; };
+  }, [app]);
   if (!user || applications === null) return <Loading />;
   const upload = async () => {
     if (!app || !current) { setError("Select an application first."); return; }
     if (!file) { setError("Choose a PDF file to upload."); return; }
-    setBusy(true); setError(null);
+    setBusy(true); setError(null); setSuccess(null);
     try {
       const problem = await fileError(file); if (problem) throw new Error(problem);
-      await uploadDocument(app, category, file);
+      const uploaded = await uploadDocument(app, category, file);
       setDocs(await listDocuments(app)); setFile(null);
+      setSuccess(`${uploaded.filename ?? file.name} uploaded. PDF text/OCR: ${uploaded.extraction_status} · ${uploaded.extracted_text_char_count} characters. This is extraction status, not issuer verification.`);
       const input = document.getElementById("pdf") as HTMLInputElement | null; if (input) input.value = "";
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
+  };
+  const retry = async () => {
+    setError(null);
+    try {
+      if (!current) setApplications(await listApplications());
+      else { setLoadingDocuments(true); setDocs(await listDocuments(app!)); }
+    } catch (e) { setError((e as Error).message || "Retry failed."); }
+    finally { setLoadingDocuments(false); }
   };
   return <div>
     <PageHeader title="Document Upload" description="PDFs are sent to the authenticated backend and stored in its private document directory." />
@@ -61,11 +79,12 @@ function UploadPage() {
         <div className="space-y-1.5"><Label htmlFor="app">Application</Label><select id="app" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={app ?? ""} onChange={(e) => { setError(null); void navigate({ search: { app: e.target.value || undefined } }); }}><option value="">Select application…</option>{applications.map((a) => <option key={a.id} value={a.id}>{a.id} — {a.institution_name || "Unnamed"}</option>)}</select></div>
         <div className="space-y-1.5"><Label htmlFor="cat">Document category</Label><select id="cat" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as DocCategory)}>{DOC_CATEGORIES.map((c) => <option key={c} value={c}>{DOC_CATEGORY_LABELS[c]}</option>)}</select></div>
         <div className="space-y-1.5"><Label htmlFor="pdf">PDF file (max 10 MB)</Label><Input id="pdf" type="file" accept="application/pdf,.pdf" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setError(null); }} /></div>
-        {error && <p role="alert" className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">{error}</p>}
+        {error && <div role="alert" className="space-y-2 rounded-md bg-destructive/10 p-2 text-sm text-destructive"><p>{error}</p><Button size="sm" variant="outline" onClick={() => void retry()}>Retry loading</Button></div>}
+        {success && <p role="status" className="rounded-md border border-success/30 bg-success/10 p-2 text-sm">{success}</p>}
         {canUpload && <Button onClick={upload} disabled={busy} className="w-full">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{busy ? "Uploading…" : "Upload PDF"}</Button>}
       </div></Panel>
       <Panel title={current ? `Backend documents — ${current.id}` : "Backend documents"} className="lg:col-span-2">
-        {!current ? <Empty title="Select an application to list its documents." /> : docs.length === 0 ? <Empty title="No backend documents yet." /> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-muted-foreground"><tr><th className="pb-2">Category</th><th>Filename</th><th>Uploaded</th><th>Status</th><th>Extraction</th></tr></thead><tbody>{docs.map((d) => <tr key={d.id} className="border-t"><td className="py-2">{DOC_CATEGORY_LABELS[d.category as DocCategory] ?? d.category}</td><td className="max-w-52 truncate">{d.filename ?? "—"}<DocumentIntegrityNotice duplicate={d.duplicate_hash_detected} /></td><td>{fmtDate(d.uploaded_at)}</td><td><StatusBadge status={d.processing_status} /></td><td>{d.extraction_status} · {d.extracted_text_char_count} chars</td></tr>)}</tbody></table></div>}
+        {!current ? <Empty title="Select an application to list its documents." /> : loadingDocuments ? <Loading label="Loading backend documents…" /> : docs.length === 0 ? <Empty title="No backend documents yet." /> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-muted-foreground"><tr><th className="pb-2">Category</th><th>Filename</th><th>Uploaded</th><th>Status</th><th>Extraction</th></tr></thead><tbody>{docs.map((d) => <tr key={d.id} className="border-t"><td className="py-2">{DOC_CATEGORY_LABELS[d.category as DocCategory] ?? d.category}</td><td className="max-w-52 truncate">{d.filename ?? "—"}<DocumentIntegrityNotice duplicate={d.duplicate_hash_detected} /></td><td>{fmtDate(d.uploaded_at)}</td><td><StatusBadge status={d.processing_status} /></td><td>{d.extraction_status} · {d.extracted_text_char_count} chars</td></tr>)}</tbody></table></div>}
       </Panel>
     </div>
   </div>;

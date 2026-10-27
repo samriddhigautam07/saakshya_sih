@@ -63,6 +63,31 @@ export interface ChecklistItem {
   classification: "verified_regulatory" | "demo";
 }
 export interface Checklist { application_category: string; configured: boolean; items: ChecklistItem[] }
+export interface RegulatorySource {
+  id: string; supersedes_source_id: string | null; title: string; issuing_authority: string;
+  source_url: string | null; original_filename: string | null; document_version: string;
+  publication_date: string | null; effective_date: string | null; retrieval_date: string;
+  status: "registered" | "ingested" | "verified" | "inactive"; extraction_status: string;
+  passage_count: number; created_at: string;
+}
+export interface RegulatoryPassage { id: string; page_number: number; text: string }
+export interface RegulatoryRule {
+  id: string; rule_id: string; version: number; source_id: string; source_version: string;
+  rule_title: string; supporting_quotation: string; clause_reference: string | null;
+  annexure_reference: string | null; page_number: number; application_category: string;
+  requirement: string; conditions: string[]; required_evidence: string; validation_type: string;
+  validation_parameters: Record<string, unknown>; applicable_from: string | null; applicable_until: string | null;
+  uncertainty_notes: string[]; is_demo: boolean; status: "draft" | "manual_review" | "approved" | "active" | "retired";
+  created_by: string; reviewed_by: string | null; created_at: string; updated_at: string;
+}
+export interface RegulatorySourceCreate {
+  title: string; issuing_authority: string; source_url?: string; document_version: string;
+  publication_date?: string; effective_date?: string; retrieval_date?: string; supersedes_source_id?: string;
+}
+export type RuleDraftPayload = Pick<RegulatoryRule,
+  "rule_title" | "supporting_quotation" | "clause_reference" | "annexure_reference" | "page_number" |
+  "application_category" | "requirement" | "conditions" | "required_evidence" | "validation_type" |
+  "validation_parameters" | "applicable_from" | "applicable_until" | "uncertainty_notes">;
 export interface ReviewDecision {
   id: string; application_id: string; finding_id: string; decision: "confirmed_issue" | "dismissed_finding" | "clarification_required";
   previous_status: string; status: string; actor: string; reason: string; created_at: string;
@@ -137,6 +162,21 @@ export const extractDocumentFields = (applicationId: string, documentId: string)
 export const reprocessDocumentText = (applicationId: string, documentId: string) => api<Document>(`/api/applications/${encodeURIComponent(applicationId)}/documents/${encodeURIComponent(documentId)}/reprocess-text`, { method: "POST" });
 export const listDocumentExtractions = (applicationId: string, documentId: string) => api<DocumentExtraction[]>(`/api/applications/${encodeURIComponent(applicationId)}/documents/${encodeURIComponent(documentId)}/structured-extractions`);
 export const getCategoryChecklist = (category: string) => api<Checklist>(`/api/regulatory/checklists/${encodeURIComponent(category)}`);
+export const listRegulatorySources = () => api<RegulatorySource[]>("/api/regulatory/sources");
+export const registerRegulatorySource = (payload: RegulatorySourceCreate) => api<RegulatorySource>("/api/regulatory/sources", { method: "POST", body: JSON.stringify(payload) });
+export function uploadRegulatorySource(sourceId: string, file: File) { const form = new FormData(); form.set("file", file); return api<RegulatorySource>(`/api/regulatory/sources/${encodeURIComponent(sourceId)}/upload`, { method: "POST", body: form }); }
+export const listRegulatoryPassages = (sourceId: string) => api<RegulatoryPassage[]>(`/api/regulatory/sources/${encodeURIComponent(sourceId)}/passages`);
+export const searchRegulatoryPassages = (sourceId: string, query: string) => api<RegulatoryPassage[]>(`/api/regulatory/sources/${encodeURIComponent(sourceId)}/search?query=${encodeURIComponent(query)}`);
+export const verifyRegulatorySource = (sourceId: string) => api<RegulatorySource>(`/api/regulatory/sources/${encodeURIComponent(sourceId)}/verify`, { method: "POST" });
+export const listRegulatoryRules = () => api<RegulatoryRule[]>("/api/regulatory/rules");
+export const proposeRegulatoryRule = (sourceId: string, passageId: string, applicationCategory: string) => api<RegulatoryRule>(`/api/regulatory/sources/${encodeURIComponent(sourceId)}/proposals`, { method: "POST", body: JSON.stringify({ passage_id: passageId, application_category: applicationCategory }) });
+const ruleTransition = (id: string, action: "approve" | "activate" | "retire") => api<RegulatoryRule>(`/api/regulatory/rules/${encodeURIComponent(id)}/${action}`, { method: "POST", body: JSON.stringify({}) });
+export const approveRegulatoryRule = (id: string) => ruleTransition(id, "approve");
+export const activateRegulatoryRule = (id: string) => ruleTransition(id, "activate");
+export const retireRegulatoryRule = (id: string) => ruleTransition(id, "retire");
+export const reviseRegulatoryRule = (id: string, payload: RuleDraftPayload) => api<RegulatoryRule>(`/api/regulatory/rules/${encodeURIComponent(id)}/revise`, { method: "POST", body: JSON.stringify(payload) });
+export const configureRegulatoryCategory = (applicationCategory: string, enabled: boolean) => api<{ application_category: string; enabled: boolean }>("/api/regulatory/categories", { method: "PUT", body: JSON.stringify({ application_category: applicationCategory, enabled }) });
+export const getRegulatoryAuditHistory = () => api<AuditEvent[]>("/api/audit-history");
 export const listReviewRuns = listValidationRuns;
 export const submitReviewDecision = (applicationId: string, findingId: string, decision: ReviewDecision["decision"], reason: string) => api<ReviewDecision>(`/api/applications/${encodeURIComponent(applicationId)}/findings/${encodeURIComponent(findingId)}/reviews`, { method: "POST", body: JSON.stringify({ decision, reason }) });
 export const getFindingReviewHistory = (applicationId: string, findingId: string) => api<ReviewDecision[]>(`/api/applications/${encodeURIComponent(applicationId)}/findings/${encodeURIComponent(findingId)}/reviews`);

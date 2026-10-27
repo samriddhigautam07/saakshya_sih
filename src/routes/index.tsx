@@ -161,7 +161,8 @@ function Dashboard() {
           return (
             <>
               {user.role === "Rules Manager / Administrator" && <Panel title="Rules Manager account">
-                <p className="text-sm text-muted-foreground">You are signed in with the Rules Manager / Administrator role. This frontend currently has no integrated regulatory source and rule management console; the Validation Engine page is a labelled local demo, not an authorized rules workspace. Application review and document actions remain unavailable to this role.</p>
+                <p className="text-sm text-muted-foreground">You are signed in with the Rules Manager / Administrator role. Manage authorized regulatory sources, rule versions, approvals, and audit history in the backend-connected workspace. The Validation Engine page remains a labelled local demo.</p>
+                <Button className="mt-3" asChild><Link to="/rules"><ShieldCheck className="h-4 w-4" />Open Rules Workspace</Link></Button>
               </Panel>}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map((card) => (
@@ -335,6 +336,7 @@ function Dashboard() {
                         </Link>
                       </Button>
                     )}
+                    {user.role === "Rules Manager / Administrator" && <Button variant="outline" className="justify-start" asChild><Link to="/rules"><ShieldCheck className="h-4 w-4" />Manage regulatory rules</Link></Button>}
                   </div>
                   <p className="mt-4 text-xs text-muted-foreground">
                     Category checklists, extraction, validation, reports, and review decisions use

@@ -25,6 +25,9 @@ const STATUS_TONE: Record<string, Tone> = {
   Escalated: "danger",
   "Upload error": "danger",
   "Manual Review Required": "warning",
+  "Provider Unavailable": "warning",
+  "Unable to Verify": "warning",
+  "Pending Verification": "info",
   "Under Review": "warning",
   Medium: "warning",
   "Awaiting manual fields": "warning",
@@ -36,8 +39,13 @@ const STATUS_TONE: Record<string, Tone> = {
 };
 
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
+  const inferredTone: Tone = /mismatch|inconsisten|issue found|expired|error/i.test(status)
+    ? "danger"
+    : /pending|provider unavailable|unable to verify|manual review|required/i.test(status)
+      ? "warning"
+      : "neutral";
   return (
-    <span className={cn("inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium", TONES[STATUS_TONE[status] ?? "neutral"], className)}>
+    <span className={cn("inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium", TONES[STATUS_TONE[status] ?? inferredTone], className)}>
       {status}
     </span>
   );

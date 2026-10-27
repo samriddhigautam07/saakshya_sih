@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   BadgeCheck,
   ClipboardCheck,
+  BookOpenCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearSession, useSession } from "@/lib/session";
@@ -21,6 +22,7 @@ const NAV = [
   { to: "/validation", label: "Validation Engine", icon: ShieldCheck },
   { to: "/verification", label: "Verification Status", icon: BadgeCheck },
   { to: "/review", label: "Results & Review", icon: ClipboardCheck },
+  { to: "/rules", label: "Rules Workspace", icon: BookOpenCheck },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -45,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <div>
               <p className="font-semibold leading-tight">VerifyWise AI</p>
-              <p className="text-[11px] opacity-70">SIH26261 · Prototype</p>
+          <p className="text-[11px] opacity-70">SIH26261 · Demo Environment</p>
             </div>
           </div>
         </div>
@@ -59,7 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             {user ? user.email : "Backend sign in"}
           </Link>
-          {NAV.filter((n) => n.to !== "/applications/new" || canCreateApplication(user?.role)).map(
+          {NAV.filter((n) => (n.to !== "/applications/new" || canCreateApplication(user?.role)) && (n.to !== "/rules" || user?.role === "Rules Manager / Administrator")).map(
             (n) => (
               <Link
                 key={n.to}
