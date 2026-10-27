@@ -27,9 +27,12 @@ dist-ssr
 backend/.env
 backend/.env.*
 !backend/.env.example
-backend/*.db
-backend/*.db-shm
-backend/*.db-wal
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+**/private_documents/
 backend/.venv/
 __pycache__/
 .pytest_cache/
