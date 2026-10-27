@@ -13,7 +13,7 @@ BACKEND_ENV_FILE = BACKEND_DIR / ".env"
 class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite:///./verifywise.db"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://127.0.0.1:8080"
+    cors_origins: str = "https://saakshya-visiontech.vercel.app,http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://127.0.0.1:8080"
     jwt_secret_key: SecretStr | None = None
     access_token_expire_minutes: int = 15
     document_storage_dir: Path = Path.home() / ".verifywise-ai" / "private_documents"

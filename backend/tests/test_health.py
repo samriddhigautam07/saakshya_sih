@@ -58,6 +58,24 @@ def test_vite_port_8080_can_read_health_with_cors(tmp_path):
     assert response.headers["access-control-allow-origin"] == "http://localhost:8080"
 
 
+def test_production_frontend_origin_can_read_health_without_credentials(tmp_path):
+    app = create_app(Settings(
+        _env_file=None,
+        database_url=f"sqlite:///{tmp_path / 'production-cors.db'}",
+        jwt_secret_key="test-only-secret-key-with-more-than-32-characters",
+        document_storage_dir=tmp_path / "production-cors-documents",
+    ))
+    with TestClient(app) as client:
+        response = client.get(
+            "/health",
+            headers={"Origin": "https://saakshya-visiontech.vercel.app"},
+        )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://saakshya-visiontech.vercel.app"
+    assert response.headers.get("access-control-allow-credentials") is None
+
+
 def test_unconfigured_frontend_origin_is_not_allowed(tmp_path):
     app = create_app(Settings(
         _env_file=None,

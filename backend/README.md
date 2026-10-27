@@ -65,7 +65,7 @@ uvicorn app.main:app --reload
 
 The health endpoint is <http://127.0.0.1:8000/health>. Interactive API documentation is at <http://127.0.0.1:8000/docs>.
 
-Browser access uses bearer headers and does not rely on cookies. `CORS_ORIGINS` is a comma-separated exact-origin allowlist; local Vite origins on ports 5173, 3000, and 8080 are included by default. For another frontend origin, add its full scheme/host/port to `backend/.env`. Wildcard origins are not used.
+Browser access uses bearer headers and does not rely on cookies. `CORS_ORIGINS` is a comma-separated exact-origin allowlist; the SAAKSHYA production frontend (`https://saakshya-visiontech.vercel.app`) and local Vite origins on ports 5173, 3000, and 8080 are included by default. If setting `CORS_ORIGINS` in Render or `backend/.env`, include every origin that should be allowed, with no spaces required between comma-separated entries. For example: `CORS_ORIGINS=https://saakshya-visiontech.vercel.app,http://localhost:5173,http://127.0.0.1:5173`. Origins must include the full scheme and host (and port for local development); wildcard origins are not used.
 
 ## Authentication API
 
