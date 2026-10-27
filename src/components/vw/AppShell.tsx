@@ -31,8 +31,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!user) return <div className="min-h-screen bg-background">
     <header className="border-b bg-card">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary font-bold text-primary-foreground">V</div>
-        <div><p className="font-semibold leading-tight">VerifyWise AI</p><p className="text-xs text-muted-foreground">SIH26261 · Compliance assistance prototype</p></div>
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary font-bold text-primary-foreground">S</div>
+        <div><p className="font-semibold leading-tight">SAAKSHYA</p><p className="text-xs text-muted-foreground">AI-Powered Document Authentication & Compliance Platform</p></div>
       </div>
     </header>
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
@@ -43,11 +43,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-b border-sidebar-border px-4 py-3 lg:px-5 lg:py-5">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground font-bold">
-              V
+              S
             </div>
             <div>
-              <p className="font-semibold leading-tight">VerifyWise AI</p>
-          <p className="text-[11px] opacity-70">SIH26261 · Demo Environment</p>
+              <p className="font-semibold leading-tight">SAAKSHYA</p>
+          <p className="text-[11px] opacity-70">AI-Powered Compliance Platform</p>
             </div>
           </div>
         </div>

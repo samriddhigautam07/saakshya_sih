@@ -68,7 +68,7 @@
 :root {
   --radius: 0.5rem;
   color-scheme: light;
-  /* Proposed VerifyWise institutional palette; not an official AICTE brand palette. */
+  /* SAAKSHYA institutional palette with a warmer saffron-gold accent. */
   --background: oklch(0.965 0.006 75.4); /* #F6F3EF ivory */
   --foreground: oklch(0.273 0.008 317.7); /* #29262A charcoal */
   --card: oklch(1 0 0);
@@ -81,29 +81,29 @@
   --secondary-foreground: oklch(0.373 0.084 10.2);
   --muted: oklch(0.945 0.008 68);
   --muted-foreground: oklch(0.515 0.011 17.5);
-  --accent: oklch(0.724 0.088 80.1); /* #C3A064 muted gold */
+  --accent: oklch(0.77 0.122 81.5); /* #E5A52B warm saffron-gold */
   --accent-foreground: oklch(0.273 0.008 317.7);
   --destructive: oklch(0.504 0.176 22.3);
   --destructive-foreground: oklch(0.98 0 0);
   --success: oklch(0.43 0.095 157);
-  --warning: oklch(0.723 0.131 78);
-  --warning-foreground: oklch(0.417 0.076 73);
+  --warning: oklch(0.76 0.13 81.2);
+  --warning-foreground: oklch(0.33 0.048 10.8); /* dark text on light saffron */
   --border: oklch(0.907 0.011 63.3); /* #E6DFD9 warm neutral */
   --input: oklch(0.829 0.016 61.3);
-  --ring: oklch(0.541 0.079 74.8); /* deeper gold for keyboard focus contrast */
+  --ring: oklch(0.67 0.115 78.8); /* #C98516 deeper saffron-gold */
   --chart-1: oklch(0.373 0.084 10.2);
-  --chart-2: oklch(0.724 0.088 80.1);
+  --chart-2: oklch(0.77 0.122 81.5);
   --chart-3: oklch(0.504 0.176 22.3);
-  --chart-4: oklch(0.723 0.131 78);
+  --chart-4: oklch(0.76 0.13 81.2);
   --chart-5: oklch(0.43 0.095 157);
   --sidebar: oklch(0.373 0.084 10.2);
   --sidebar-foreground: oklch(0.965 0.006 75.4);
-  --sidebar-primary: oklch(0.724 0.088 80.1);
+  --sidebar-primary: oklch(0.77 0.122 81.5);
   --sidebar-primary-foreground: oklch(0.273 0.008 317.7);
   --sidebar-accent: oklch(0.434 0.086 9.9);
   --sidebar-accent-foreground: oklch(0.965 0.006 75.4);
   --sidebar-border: oklch(0.494 0.085 12.6);
-  --sidebar-ring: oklch(0.724 0.088 80.1);
+  --sidebar-ring: oklch(0.77 0.122 81.5);
 }
 
 .dark {
@@ -120,30 +120,31 @@
   --secondary-foreground: oklch(0.952 0.009 67.7);
   --muted: oklch(0.325 0.011 358.5);
   --muted-foreground: oklch(0.75 0.016 44.1);
-  --accent: oklch(0.724 0.088 80.1);
+  --accent: oklch(0.77 0.122 81.5);
   --accent-foreground: oklch(0.273 0.008 317.7);
   --destructive: oklch(0.653 0.168 19.5);
   --destructive-foreground: oklch(0.228 0.007 346);
   --success: oklch(0.711 0.118 157.9);
-  --warning: oklch(0.773 0.106 80.7);
-  --warning-foreground: oklch(0.879 0.097 83.4);
+  --warning: oklch(0.79 0.12 81.8);
+  --warning-foreground: oklch(0.2 0.02 10.8);
   --border: oklch(0.403 0.016 359.5);
   --input: oklch(0.492 0.022 1.1);
-  --ring: oklch(0.724 0.088 80.1);
-  --chart-1: oklch(0.724 0.088 80.1);
+  --ring: oklch(0.77 0.122 81.5);
+  --chart-1: oklch(0.77 0.122 81.5);
   --chart-2: oklch(0.711 0.118 157.9);
   --chart-3: oklch(0.653 0.168 19.5);
-  --chart-4: oklch(0.773 0.106 80.7);
+  --chart-4: oklch(0.79 0.12 81.8);
   --chart-5: oklch(0.528 0.097 8.5);
   --sidebar: oklch(0.28 0.041 5.1);
   --sidebar-foreground: oklch(0.952 0.009 67.7);
-  --sidebar-primary: oklch(0.724 0.088 80.1);
+  --sidebar-primary: oklch(0.77 0.122 81.5);
   --sidebar-primary-foreground: oklch(0.273 0.008 317.7);
   --sidebar-accent: oklch(0.326 0.05 6.5);
   --sidebar-accent-foreground: oklch(0.952 0.009 67.7);
   --sidebar-border: oklch(0.417 0.052 7.2);
-  --sidebar-ring: oklch(0.724 0.088 80.1);
+  --sidebar-ring: oklch(0.77 0.122 81.5);
 }
+
 
 @layer base {
   * {

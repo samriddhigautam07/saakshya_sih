@@ -7,7 +7,7 @@ import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/review")({
   validateSearch: (s: Record<string, unknown>): { app?: string | undefined } => ({ app: typeof s["app"] === "string" ? s["app"] : undefined }),
-  head: () => ({ meta: [{ title: "Results & Review — VerifyWise AI" }, { name: "description", content: "Backend validation report, evidence, reviewer decisions and audit history." }] }),
+  head: () => ({ meta: [{ title: "Results & Review — SAAKSHYA" }, { name: "description", content: "Backend validation report, evidence, reviewer decisions and audit history." }] }),
   component: ReviewPage,
 });
 

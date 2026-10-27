@@ -80,8 +80,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "VerifyWise AI — Application Validation Prototype" },
-      { name: "description", content: "Rule-based application validation and document verification prototype for SIH26261 (synthetic data)." },
+      { title: "SAAKSHYA — AI-Powered Document Authentication & Compliance Platform" },
+      { name: "description", content: "Rule-based application validation and document verification prototype for SAAKSHYA (synthetic data)." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

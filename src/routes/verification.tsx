@@ -11,9 +11,9 @@ import { Empty, Loading, MockLabel, PageHeader, Panel, StatusBadge, fmtDateTime 
 export const Route = createFileRoute("/verification")({
   head: () => ({
     meta: [
-      { title: "Verification Status — VerifyWise AI" },
+      { title: "Verification Status — SAAKSHYA" },
       { name: "description", content: "Simulated issuer verification status for submitted documents (mock responses)." },
-      { property: "og:title", content: "Verification Status — VerifyWise AI" },
+      { property: "og:title", content: "Verification Status — SAAKSHYA" },
       { property: "og:description", content: "Simulated issuer verification status for submitted documents." },
     ],
   }),

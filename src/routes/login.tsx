@@ -38,7 +38,7 @@ export function LoginPage() {
         {error && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Login"}</Button>
         <p className="text-center text-sm text-muted-foreground">Institution account not created yet? <Link className="font-medium text-primary underline" to="/signup">Institution Sign Up</Link></p>
-        <p className="text-xs text-muted-foreground">Authentication uses the VerifyWise backend. Access tokens remain in memory for this browser session.</p>
+        <p className="text-xs text-muted-foreground">Authentication uses the SAAKSHYA backend. Access tokens remain in memory for this browser session.</p>
       </form>
     </Panel>
   </div>;

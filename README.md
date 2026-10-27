@@ -1,6 +1,6 @@
-# Wise Verify Compass
+# SAAKSHYA
 
-Build a functional hackathon prototype named “VerifyWise AI” for SIH problem statement SIH26261: AI-Powered Application Validation, Document Authentication and Regulatory Compliance Verification.
+Build a functional hackathon prototype named “SAAKSHYA” for SIH problem statement SIH26261: AI-Powered Document Authentication & Compliance Platform.
 
 PROJECT PURPOSE:
 Create an AICTE-style application validation and decision-support dashboard. This is a demonstration prototype using synthetic data. It is NOT an official AICTE application, and it must not claim to connect to the real AICTE portal or real issuing authorities.

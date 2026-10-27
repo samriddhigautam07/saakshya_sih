@@ -32,10 +32,10 @@ import { institutionWorkflowLabel, reviewerDashboardData } from "@/lib/role-dash
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — VerifyWise AI" },
+      { title: "Dashboard — SAAKSHYA" },
       {
         name: "description",
-        content: "Live application and review activity from the VerifyWise backend.",
+        content: "Live application and review activity from the SAAKSHYA backend.",
       },
     ],
   }),
@@ -356,8 +356,8 @@ export function Welcome() {
   return <div className="mx-auto grid min-h-[65vh] max-w-5xl items-center gap-10 py-10 lg:grid-cols-2">
     <section>
       <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-foreground">Institutional compliance assistance</p>
-      <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Welcome to VerifyWise AI</h1>
-      <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">A prototype workflow for institutions and authorized reviewers to organize application documents, inspect deterministic validation findings, and record human review.</p>
+      <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Welcome to SAAKSHYA</h1>
+      <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">AI-powered document authentication and compliance workflow for institutions and authorized reviewers to organize application documents, inspect deterministic validation findings, and record human review.</p>
       <p className="mt-4 text-xs text-muted-foreground">This is an advisory prototype. It is not an official AICTE system and does not make approval decisions.</p>
     </section>
     <section className="rounded-xl border bg-card p-6 shadow-sm sm:p-8">

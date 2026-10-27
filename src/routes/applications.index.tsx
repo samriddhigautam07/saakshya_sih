@@ -11,10 +11,10 @@ import { canCreateApplication } from "@/lib/permissions";
 export const Route = createFileRoute("/applications/")({
   head: () => ({
     meta: [
-      { title: "Applications — VerifyWise AI" },
-      { name: "description", content: "Browse application records returned by the VerifyWise backend." },
-      { property: "og:title", content: "Applications — VerifyWise AI" },
-      { property: "og:description", content: "Browse application records returned by the VerifyWise backend." },
+      { title: "Applications — SAAKSHYA" },
+      { name: "description", content: "Browse application records returned by the SAAKSHYA backend." },
+      { property: "og:title", content: "Applications — SAAKSHYA" },
+      { property: "og:description", content: "Browse application records returned by the SAAKSHYA backend." },
     ],
   }),
   component: Applications,
@@ -34,7 +34,7 @@ export function Applications() {
   const rows = items.filter((a) => `${a.id} ${a.institution_name} ${a.institution_id}`.toLowerCase().includes(q.toLowerCase()));
   return (
     <div>
-      <PageHeader title="Applications" description="Authenticated application records returned by the VerifyWise backend. No browser demo records are included."
+      <PageHeader title="Applications" description="Authenticated application records returned by the SAAKSHYA backend. No browser demo records are included."
         actions={canCreateApplication(user?.role) ? <Button asChild><Link to="/applications/new">New application</Link></Button> : undefined} />
       {error && <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-destructive/10 p-3 text-sm text-destructive"><span>{error}</span><Button size="sm" variant="outline" onClick={() => { setError(null); setItems(null); listApplications().then(setItems).catch((e: ApiError) => { setError(e.message); setItems([]); }); }}>Retry</Button></div>}
       <Input placeholder="Search by ID, institution name or institution ID…" value={q} onChange={(e) => setQ(e.target.value)} className="mb-4 max-w-md" />

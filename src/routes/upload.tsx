@@ -12,7 +12,7 @@ import { DocumentIntegrityNotice } from "@/components/vw/DocumentIntegrityNotice
 
 export const Route = createFileRoute("/upload")({
   validateSearch: (s: Record<string, unknown>): { app?: string | undefined } => ({ app: typeof s["app"] === "string" ? s["app"] as string : undefined }),
-  head: () => ({ meta: [{ title: "Document Upload — VerifyWise AI" }, { name: "description", content: "Upload PDFs to private backend storage." }] }),
+  head: () => ({ meta: [{ title: "Document Upload — SAAKSHYA" }, { name: "description", content: "Upload PDFs to private backend storage." }] }),
   component: UploadPage,
 });
 const MAX = 10 * 1024 * 1024;

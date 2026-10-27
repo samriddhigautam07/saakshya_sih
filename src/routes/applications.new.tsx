@@ -13,10 +13,10 @@ import { canCreateApplication } from "@/lib/permissions";
 export const Route = createFileRoute("/applications/new")({
   head: () => ({
     meta: [
-      { title: "New Application — VerifyWise AI" },
-      { name: "description", content: "Create an application record in the authenticated VerifyWise backend." },
-      { property: "og:title", content: "New Application — VerifyWise AI" },
-      { property: "og:description", content: "Create an application record in the authenticated VerifyWise backend." },
+      { title: "New Application — SAAKSHYA" },
+      { name: "description", content: "Create an application record in the authenticated SAAKSHYA backend." },
+      { property: "og:title", content: "New Application — SAAKSHYA" },
+      { property: "og:description", content: "Create an application record in the authenticated SAAKSHYA backend." },
     ],
   }),
   component: NewApplication,

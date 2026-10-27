@@ -38,7 +38,7 @@ export function InstitutionSignup() {
 
   if (user) return null;
   return <div className="mx-auto max-w-xl">
-    <PageHeader title="Institution Sign Up" description="Create an Applicant / Institution account using the secure VerifyWise backend." />
+    <PageHeader title="Institution Sign Up" description="Create an Applicant / Institution account using the secure SAAKSHYA backend." />
     <Panel title={createdEmail ? "Account created" : "Institution account details"}>
       {createdEmail ? <div className="space-y-4"><p role="status" className="rounded-md border border-success/30 bg-success/10 p-3 text-sm">The Applicant / Institution account for <strong>{createdEmail}</strong> has been created. Sign in to continue.</p><Button asChild className="w-full"><Link to="/login">Go to Login</Link></Button></div> : <form className="space-y-4" onSubmit={(event) => void submit(event)}>
         <div className="space-y-1.5"><Label htmlFor="signup-email">Institution email</Label><Input id="signup-email" type="email" autoComplete="email" required maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} /></div>

@@ -9,7 +9,7 @@ import { extractionFailureMessage, pdfExtractionGuidance } from "@/lib/extractio
 import { DocumentIntegrityNotice } from "@/components/vw/DocumentIntegrityNotice";
 
 export const Route = createFileRoute("/applications/$id")({
-  head: ({ params }) => ({ meta: [{ title: `${params.id} — VerifyWise AI` }, { name: "description", content: `Backend details and validation for ${params.id}.` }] }),
+  head: ({ params }) => ({ meta: [{ title: `${params.id} — SAAKSHYA` }, { name: "description", content: `Backend details and validation for ${params.id}.` }] }),
   component: Detail,
 });
 

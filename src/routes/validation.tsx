@@ -13,9 +13,9 @@ import { Loading, PageHeader, Panel, StatusBadge } from "@/components/vw/ui";
 export const Route = createFileRoute("/validation")({
   head: () => ({
     meta: [
-      { title: "Validation Engine — VerifyWise AI" },
+      { title: "Validation Engine — SAAKSHYA" },
       { name: "description", content: "Deterministic validation rules and configurable document checklist." },
-      { property: "og:title", content: "Validation Engine — VerifyWise AI" },
+      { property: "og:title", content: "Validation Engine — SAAKSHYA" },
       { property: "og:description", content: "Deterministic validation rules and configurable document checklist." },
     ],
   }),

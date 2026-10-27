@@ -1,4 +1,4 @@
-# VerifyWise AI backend (Phase 5)
+# SAAKSHYA backend (Phase 5)
 
 This local FastAPI service uses SQLAlchemy and SQLite to persist application data, document metadata, and structured extraction results. It provides password-based login, short-lived JWT bearer access tokens, backend-enforced role checks, authenticated document upload, private file storage, digital PDF extraction, bounded Tesseract OCR, and optional evidence-checked LLM extraction. Passwords are hashed using Argon2 through `pwdlib`; JWTs are signed with a locally configured secret using PyJWT.
 
